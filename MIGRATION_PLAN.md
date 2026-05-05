@@ -31,16 +31,6 @@ Still TODO:
 - Remove `(WXT dev)` from manifest name.
 - Set `manifest.key` in `wxt.config.ts` to match the old extension's key (so the new build inherits the same Chrome extension ID and same `chrome.storage` namespace).
 
-### 6.2 Storage migration shim
-
-- In `entrypoints/background.ts`, on `chrome.runtime.onInstalled` with `reason === 'update'`:
-    - read every old storage key
-    - transform shapes if any changed during migration (Phase 3 may have introduced cleaner schemas)
-    - write new shapes
-    - log migration outcome
-    - idempotent: running twice must not corrupt data
-- Test on a fresh profile seeded with old-shape storage before going further.
-
 ### 6.3 Final smoke test
 
 - Clean Chrome profile.

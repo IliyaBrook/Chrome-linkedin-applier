@@ -2,12 +2,18 @@ import { onMessage, sendMessage } from '@/lib/messaging';
 import {
   applyHistoryStorage,
   autoApplyRunningStorage,
+  cvFilesStorage,
   defaultFieldsStorage,
   dropdownsStorage,
   externalApplyDataStorage,
   inputFieldConfigsStorage,
   radioButtonsStorage,
+  selectedCvFileStorage,
 } from '@/lib/storage';
+import {
+  pruneInvalidApplyHistory,
+  reconcileSelectedCv,
+} from '@/lib/storage-migration';
 import {
   type DropdownConfig,
   type ExternalApplyEntry,
@@ -165,6 +171,32 @@ function runScriptInContent(): void {
   if (typeof fn === 'function') fn();
 }
 
+export async function runStorageMigration(reason: string): Promise<void> {
+  const before = await browser.storage.local.get(null);
+  const keysPresent = Object.keys(before);
+  console.log('[Easy Apply] storage migration', { reason, keysPresent });
+
+  const historyResult = pruneInvalidApplyHistory(before.applyHistory);
+  if (historyResult.dropped > 0) {
+    console.warn(
+      '[Easy Apply] storage migration: dropped',
+      historyResult.dropped,
+      'apply-history entries with unknown shape',
+    );
+    await applyHistoryStorage.setValue(historyResult.next);
+  }
+
+  const cvFiles = await cvFilesStorage.getValue();
+  const selectedCv = await selectedCvFileStorage.getValue();
+  const reconciled = reconcileSelectedCv(selectedCv, cvFiles);
+  if (reconciled.cleared) {
+    console.warn(
+      '[Easy Apply] storage migration: selectedCvFile pointed to a missing CV — cleared',
+    );
+    await selectedCvFileStorage.setValue(reconciled.next);
+  }
+}
+
 async function getActiveTab() {
   const tabs = await browser.tabs.query({ active: true, currentWindow: true });
   return tabs?.[0] ?? null;
@@ -176,6 +208,13 @@ function isOnLinkedinJobs(url: string | undefined): boolean {
 
 export default defineBackground(() => {
   console.log('Easy Apply LinkedIn (WXT dev) — background ready', { id: browser.runtime.id });
+
+  browser.runtime.onInstalled.addListener((details) => {
+    if (details.reason !== 'update') return;
+    void runStorageMigration(details.reason).catch((err) => {
+      console.error('[Easy Apply] storage migration failed', err);
+    });
+  });
 
   onMessage('externalApplyAction', async ({ data }) => {
     try {
