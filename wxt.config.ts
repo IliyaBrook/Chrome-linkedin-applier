@@ -1,5 +1,6 @@
 import { defineConfig } from 'wxt';
 import tailwindcss from '@tailwindcss/vite';
+import { resolve } from 'node:path';
 
 export default defineConfig({
   modules: ['@wxt-dev/module-react'],
@@ -7,6 +8,10 @@ export default defineConfig({
   vite: () => ({
     plugins: [tailwindcss()],
   }),
+  webExt: {
+    chromiumProfile: resolve('.wxt/chrome-data'),
+    keepProfileChanges: true,
+  },
   manifest: {
     name: 'Easy Apply LinkedIn (WXT dev)',
     description: 'Applying for Jobs Made Effortless!',
