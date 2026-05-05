@@ -8,34 +8,6 @@ Always work the **first uncompleted sub-task** in the **earliest remaining phase
 
 ---
 
-## Phase 1 — Audit the old extension
-
-**Goal**: produce `MIGRATION_AUDIT.md` capturing every observable detail of the current shipping extension. No code in the new repo yet.
-
-**Source**: `D:\codding\My_projects\ChromeExtentions\autoApplylinkedin` (read-only).
-
-**Deliverable — `MIGRATION_AUDIT.md` with these sections**:
-
-1. **Manifest inventory** — `manifest_version`, `name`, `version`, `permissions`, `host_permissions`, `web_accessible_resources`, `content_security_policy`, `icons`, `commands` (hotkeys), action/popup config, background config, CSP notes.
-2. **Entrypoints map**:
-    - Popup: HTML file(s), associated JS/CSS, screenshots if useful
-    - Options page (if any)
-    - Background script (MV2 vs MV3, persistent vs service worker, top-level state)
-    - Content scripts: file list, `matches`, `run_at`, `all_frames`, injection order
-    - Side panel / new tab / DevTools (if any)
-    - Modal pages in `modals/` and how they're loaded
-3. **Chrome APIs used** — every `chrome.*` call with file:line and brief purpose. Group by API surface (`storage`, `tabs`, `runtime.sendMessage`, `alarms`, `contextMenus`, `notifications`, `scripting`, `webNavigation`, …).
-4. **Storage schema** — every key in `chrome.storage.local` and `chrome.storage.sync`, its inferred type/shape, default value, where it's read, where it's written.
-5. **Messaging contracts** — every `runtime.sendMessage` / `tabs.sendMessage` / `runtime.connect` with payload shape, sender file, listener file. Build a table.
-6. **External deps** — any third-party JS (jQuery, Bootstrap, lodash, CDN scripts), CSS frameworks, fonts.
-7. **Assets** — icon sizes, image files, fonts, locales (`_locales/*` if any).
-8. **Feature checklist** — flat list of user-visible features in plain English. Each row will become a parity-test row in Phase 5.
-9. **Risks / quirks** — anything fragile worth flagging: tight coupling, race conditions, brittle XPaths in `content/xpaths.js`, MV2-isms hiding under MV3.
-
-**Done when**: `MIGRATION_AUDIT.md` exists in the repo, the user has reviewed it, and any corrections are folded back in. After review, **delete this Phase 1 block** from this file.
-
----
-
 ## Phase 2 — Bootstrap the new project
 
 **Goal**: a runnable empty WXT + React + Tailwind + shadcn skeleton that loads as an unpacked extension in Chrome.
