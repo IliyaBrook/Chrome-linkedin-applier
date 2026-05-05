@@ -8,57 +8,23 @@ Always work the **first uncompleted sub-task** in the **earliest remaining phase
 
 ---
 
-## Phase 4 — Per-entrypoint UI migration
+## Phase 4.7 — Content-script automation port (remaining)
 
-**Goal**: rewrite each user-facing surface in React + Tailwind + shadcn, one at a time. After each surface lands, manually verify against the old extension and delete the sub-task.
+**Pure helpers landed**: `lib/{fuzzy-match,text-filters,linkedin-urls,time-format,apply-history,xpaths,constants}.ts` are ported and unit-tested. The runtime stub in `entrypoints/linkedin.content/` mounts the modals + registers message handlers, but the actual LinkedIn DOM automation is NOT yet ported.
 
-**Sub-tasks** (order may shift based on audit findings; default order):
+**What still needs to land** (full inventory in [`PHASE_4_7_PLAN.md`](PHASE_4_7_PLAN.md) sections B, C, D):
 
-### 4.1 Popup — primary action panel
+- `entrypoints/linkedin.content/dom-utils.ts` — `addDelay`, `getVisibleElementByXPath`, `getElementsByXPath`, `isElementVisible`, `waitForElements`, `clickElement`, `setNativeValue`, `fillAutocompleteField`, `aaLog/aaWarn/aaError`.
+- `entrypoints/linkedin.content/linkedin-dom.ts` — `detectJobsUI`, `isJobsSearchPage`, `getNewUiJobsListColumn`, `getJobItems`, `getDismissButtonForItem`, `extractJobTitleFromItem`, `getJobItemClickTarget`, `extractCompanyNameFromItem`, `isItemAlreadyApplied`, `getJobIdFromItem`, `findJobItemByJobId`, `getJobsListScrollContainer`, `getPaginationInfo`, `waitForJobItems`, `waitForJobDetailsLoaded`, `getJobTitle`.
+- `entrypoints/linkedin.content/modals.ts` — `findEasyApplyModal`, `findSduiApplyModal`, `getInteropShadowRoot`, `dismissSduiApplyModal`, `findApplicationSentModal`, `waitForApplicationSentModal`, `handleDiscardConfirmDialog`, `ensureNoApplicationModalOpen`, `closeApplicationSentModal`, `validateAndCloseConfirmationModal`, `performSafetyReminderCheck`, `clickDoneIfExist`, `terminateJobModel`.
+- `entrypoints/linkedin.content/loaders.ts` — `waitForLoaderToDisappear`, `waitForJobsLoaderToDisappear`, `waitForJobsLoaderToDisappearAndHandle`, `toggleBlinkingBorder`.
+- `entrypoints/linkedin.content/save-modal.ts` — `handleSaveApplicationModal` plus its `start/stopSaveModalMonitoring` interval pair.
+- `entrypoints/linkedin.content/form-fillers.ts` — `handleCheckboxField`, `performInputFieldChecks`, `performFillForm`, `performRadioButtonChecks`, `performDropdownChecks`, `performCheckBoxFieldCityCheck`, `performUniversalCheckboxChecks`, `runValidations`, `uncheckFollowCompany`, `selectCvFile`, `checkForFormValidationError`.
+- `entrypoints/linkedin.content/run-state.ts` — `ContentRunState` (bundle the 14 module-scope `let`s from old content.js into a closure-scoped record), `setAutoApplyRunning`, `checkAndPrepareRunState`, `updateScriptActivity`, `startScript`, `stopScript`, `startExtensionContextMonitoring`, `stopExtensionContextMonitoring`, `isExtensionContextValid(Quiet)`.
+- `entrypoints/linkedin.content/run-script.ts` — the main `runScript` / `runFindEasyApply` / `runApplyModel(Logic)` / `clickJob` / `goToNextPage` / `resetApplyOutcome` / `fillSearchFieldIfEmpty` / `checkAndPromptFields` / `checkLimitReached` flow.
+- Replace the placeholder `window.runScript = () => { ... }` in `entrypoints/linkedin.content/index.tsx` with a call into `run-script.ts`.
 
-- `entrypoints/popup/`
-- Replicate the old `popup/popup/popup.html` structure with shadcn components.
-- All state via `useStorage` hooks. No DOM manipulation.
-- Verify: every button, toggle, and input from the old popup is reachable; storage round-trips match the old shape.
-
-### 4.2 Popup — Filter Settings tab/page
-
-- Replicate `popup/filterSettings/filterSettings.html`.
-- Tabs via `Tabs` shadcn component, or a route within the popup if the old version was a separate page.
-- Verify side-by-side.
-
-### 4.3 Popup — Form Control tab/page
-
-- Replicate `popup/formControl/formControl.html`.
-- Verify side-by-side.
-
-### 4.4 Popup — External Apply tab/page
-
-- Replicate `popup/externalApply/externalApply.html`.
-- Verify side-by-side.
-
-### 4.5 Options page (if audit identifies one)
-
-- `entrypoints/options/`
-- Same approach as popup.
-
-### 4.6 Modals injected into LinkedIn pages
-
-- Old project has `modals/{formControlModal,notOnJobSearchModal,runningModal}.html`.
-- Port to React UIs mounted via `createShadowRootUi()` inside a content script, with `cssInjectionMode: 'ui'` so Tailwind stays scoped.
-- Verify on a real LinkedIn jobs page.
-
-### 4.7 Content scripts — automation logic
-
-- Port `content/{utils,createElements,content,xpaths}.js` to typed TS modules under `entrypoints/<name>.content.ts`.
-- Keep XPaths in a single `lib/xpaths.ts` constant table — easy to update when LinkedIn changes its DOM.
-- Verify: full apply-flow runs end-to-end on a test LinkedIn account.
-
-### 4.8 Localization
-
-- If old project has `_locales/`, port to `public/_locales/` or migrate to `@wxt-dev/i18n`.
-
-**Phase 4 done when**: all sub-tasks above are deleted and every feature in audit section 8 has a working counterpart in the new build.
+**Verification**: end-to-end apply flow runs on a real LinkedIn jobs page. Cannot be done without LinkedIn access — tracked here so it doesn't get lost.
 
 ---
 
