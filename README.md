@@ -40,7 +40,7 @@ Works on both LinkedIn UIs: legacy `/jobs/search/` and the new SDUI shadow-DOM `
 
 ```sh
 git clone <this-repo-url>
-cd AutoApplyLinkedinVite
+cd Chrome-linkedin-applier
 pnpm install
 pnpm build
 ```
