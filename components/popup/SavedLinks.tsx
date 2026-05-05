@@ -79,11 +79,17 @@ export function SavedLinks() {
   return (
     <div className="flex flex-col gap-2">
       <div className="grid grid-cols-2 gap-2">
-        <Button variant="outline" onClick={onSaveLink}>
+        <Button
+          className="bg-emerald-600 text-white shadow-sm hover:bg-emerald-700 dark:bg-emerald-500 dark:hover:bg-emerald-600"
+          onClick={onSaveLink}
+        >
           <Plus className="h-4 w-4" />
           Save link
         </Button>
-        <Button variant="outline" onClick={() => setShowAccordion((s) => !s)}>
+        <Button
+          className="bg-violet-600 text-white shadow-sm hover:bg-violet-700 dark:bg-violet-500 dark:hover:bg-violet-600"
+          onClick={() => setShowAccordion((s) => !s)}
+        >
           {showAccordion ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
           {showAccordion ? 'Hide saved links' : 'Show saved links'}
         </Button>
@@ -105,7 +111,6 @@ export function SavedLinks() {
                   </span>
                   <Button
                     size="icon"
-                    variant="ghost"
                     aria-label={`Open ${name}`}
                     onClick={() => goLink(url)}
                   >
@@ -113,7 +118,7 @@ export function SavedLinks() {
                   </Button>
                   <Button
                     size="icon"
-                    variant="ghost"
+                    variant="outline"
                     aria-label={`Edit ${name}`}
                     onClick={() => setDialog({ mode: 'edit', name, url })}
                   >
@@ -121,7 +126,7 @@ export function SavedLinks() {
                   </Button>
                   <Button
                     size="icon"
-                    variant="ghost"
+                    variant="destructive"
                     aria-label={`Delete ${name}`}
                     onClick={() => deleteLink(name)}
                   >
