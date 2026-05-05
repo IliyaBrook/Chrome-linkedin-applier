@@ -2,9 +2,9 @@
 
 A Chrome MV3 extension that automates LinkedIn Easy Apply flows: iterates the jobs list, applies title / company / bad-word filters, fills the application form from saved configs, picks the right CV (with smart-select), and records every attempt to a local apply-history log.
 
-Built on **WXT + React 18 + TypeScript (strict) + Tailwind v4 + shadcn/ui**. Typed storage via `wxt/storage`, typed messaging via `@webext-core/messaging`. Package manager: **pnpm**.
+Built on **WXT + React 19 + TypeScript (strict) + Tailwind v4 + shadcn/ui**. Typed storage via `wxt/storage`, typed messaging via `@webext-core/messaging`. Package manager: **pnpm**.
 
-> Topical conventions live in [`.claude/rules/`](.claude/rules) — code style, architecture, wrappers, verification.
+> Topical conventions live in [`.claude/rules/`](.claude/rules) — code style, architecture, wrappers, verification, shadcn/ui.
 
 ## Critical rules
 
@@ -12,13 +12,14 @@ Built on **WXT + React 18 + TypeScript (strict) + Tailwind v4 + shadcn/ui**. Typ
 2. **English only** for identifiers, strings, JSX text, log/error messages, and commit messages.
 3. **Storage and messaging only through typed wrappers** — `lib/storage.ts` and `lib/messaging.ts`. No direct `chrome.storage.*` or `chrome.runtime.sendMessage` from UI / hooks / content code. (See [`.claude/rules/03-wrappers.md`](.claude/rules/03-wrappers.md).)
 4. **Tailwind only** for styling. No inline `style={{ ... }}` (rare exceptions for genuinely dynamic values, with a one-line justification). No standalone `.css` files for component styling — only `assets/tailwind.css`.
-5. **Manual verification after every UI- or behavior-affecting change.** Type-checks and tests prove the code compiles; they do not prove the extension works. Load unpacked in Chrome and exercise the golden path + one edge case. (See [`.claude/rules/04-verification.md`](.claude/rules/04-verification.md).)
-6. **Strict TypeScript, no `any`** without an explicit one-line justification. Path alias `@/*` → repo root. Discriminated unions for message payloads.
+5. **shadcn/ui for primitives.** Reuse what's already in `components/ui/`. New primitives are added through the shadcn MCP server (configured in [`.mcp.json`](.mcp.json)) — do not hand-roll Radix wrappers or paste sources from memory. (See [`.claude/rules/05-shadcn.md`](.claude/rules/05-shadcn.md).)
+6. **Manual verification after every UI- or behavior-affecting change.** Type-checks and tests prove the code compiles; they do not prove the extension works. Load unpacked in Chrome and exercise the golden path + one edge case. (See [`.claude/rules/04-verification.md`](.claude/rules/04-verification.md).)
+7. **Strict TypeScript, no `any`** without an explicit one-line justification. Path alias `@/*` → repo root. Discriminated unions for message payloads.
 
 ## Tech stack
 
 - **WXT** — extension framework (handles MV3 manifest generation, HMR, multi-browser builds)
-- **React 18** + **TypeScript** (strict)
+- **React 19** + **TypeScript** (strict)
 - **Tailwind v4** via `@tailwindcss/vite` + `@wxt-dev/module-react`
 - **shadcn/ui** primitives copied into `components/ui/` (owned by the project)
 - **`@webext-core/messaging`** for typed messaging
