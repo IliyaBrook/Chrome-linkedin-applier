@@ -28,34 +28,15 @@ Always work the **first uncompleted sub-task** in the **earliest remaining phase
 
 ---
 
-## Phase 5 — Parity tests
+## Phase 5 — Parity tests (manual run remaining)
 
-**Goal**: methodically prove the new extension behaves identically to the old one before cutover.
+Code deliverables landed:
+- [`tests/PARITY_CHECKLIST.md`](tests/PARITY_CHECKLIST.md) — 70 rows from audit § 8 with old/new behavior side-by-side.
+- [`tests/MANIFEST_DIFF.md`](tests/MANIFEST_DIFF.md) — old vs `pnpm build` manifest comparison; no new permissions.
+- [`scripts/seed-storage.ts`](scripts/seed-storage.ts) — pasteable seed for reproducible parity runs.
 
-**Sub-tasks**:
-
-### 5.1 Build `tests/PARITY_CHECKLIST.md`
-
-- One row per feature from audit section 8.
-- Columns: Feature | Old behavior (brief) | New behavior (brief) | Status (✅/❌/⚠️ with note).
-- Initial pass: fill in old behavior column from audit + a manual run of the old extension.
-
-### 5.2 Manual side-by-side run
-
-- Both extensions loaded in same Chrome profile.
-- Walk every row of the checklist.
-- Note divergences. Each ❌/⚠️ either gets a fix in the new code (loop back to Phase 4) or a documented intentional divergence (with user sign-off).
-
-### 5.3 Storage seed script
-
-- `scripts/seed-storage.ts` — pasteable into DevTools Console, sets a known-good test state for both extensions so parity comparisons are reproducible.
-
-### 5.4 Permissions diff
-
-- Side-by-side `manifest.json` of old vs `wxt build`'s generated manifest.
-- New manifest must not request a permission the old one didn't, unless explicitly justified to user.
-
-**Phase 5 done when**: every checklist row is ✅ or has user-signed-off divergence note, and the user gives go-ahead for cutover.
+Still TODO:
+- **Phase 5.2 manual run.** Load both extensions in one Chrome profile, walk each 🔍 row in the checklist, flip to ✅ as confirmed. ❌ rows depend on Phase 4.7 finishing first.
 
 ---
 

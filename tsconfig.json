@@ -19,6 +19,7 @@
     ".wxt/types",
     "vitest.config.ts",
     "tests/**",
+    "scripts/**",
     "**/*.test.ts",
     "**/*.test.tsx"
   ]
