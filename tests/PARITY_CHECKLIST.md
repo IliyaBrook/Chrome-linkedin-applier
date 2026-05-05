@@ -5,7 +5,6 @@ Generated from `MIGRATION_AUDIT.md` § 8 (70 user-visible features).
 **Status legend**:
 - ✅ Implemented in new build, matches old behavior.
 - ⚠️ Implemented with a known intentional divergence (annotated).
-- ❌ Not yet implemented (waiting on Phase 4.7 — LinkedIn DOM automation port).
 - 🔍 Implemented in code, **needs manual Chrome verification** before sign-off.
 
 | # | Feature | Old behavior | New behavior | Status |
@@ -26,29 +25,29 @@ Generated from `MIGRATION_AUDIT.md` § 8 (70 user-visible features).
 | 14 | Start with empty defaults → modal | `showFormControlAlert`. | Background sends `showFormControlAlert`; React `FormControlModal`. | 🔍 |
 | 15 | Start success → button toggles | Becomes orange "Stop Auto Apply". | Variant flips to `destructive` with `Pause` icon. | 🔍 |
 | 16 | Stop run → button toggles back | Calls `hideRunningModal` on content. | `stopAutoApply` round-trip; `RunningModal` closes. | 🔍 |
-| 17 | Iterate jobs (legacy + SDUI) | Full iteration loop. | ❌ Not yet — `runScript` is a stub (`window.runScript = () => …`). Phase 4.7 remaining. | ❌ |
-| 18 | Skip cards already showing "Applied" | `isItemAlreadyApplied` check. | ❌ Phase 4.7. | ❌ |
-| 19 | Title Must Skip filter | First filter applied per card. | Pure `matchesFilter` ported & tested; full flow ❌ Phase 4.7. | ❌ |
-| 20 | Title Must Contain filter | Second filter applied per card. | Same — helper ported, flow ❌. | ❌ |
-| 21 | Wait for details ≤12 s | `waitForJobDetailsLoaded`. | ❌ Phase 4.7. | ❌ |
-| 22 | Bad-word filter on description | `\b<word>\b` regex. | `matchesFilter` already implements this; flow ❌. | ❌ |
-| 23 | External apply path | Save to `externalApplyData`. | Background `externalApplyAction` handler ported (with dedup); content-script trigger ❌. | ❌ |
-| 24 | No apply control → record `noEasyApply` | History entry. | `recordApplyHistoryEntry` ported; trigger ❌. | ❌ |
-| 25 | Easy Apply form walk | Full form-fill engine. | ❌ Phase 4.7 (form-fillers module not yet ported). | ❌ |
-| 26 | Unknown text placeholder → `inputFieldConfigs[++count]` | Sent via `updateInputFieldConfigsInStorage`. | Background handler ported (`bumpInputFieldCount` with tests); content trigger ❌. | ❌ |
-| 27 | Unknown radio question → `radioButtons[]` (first option preselected) | Stored. | Background `setRadioValue` + storage ported; content trigger ❌. | ❌ |
-| 28 | Unknown dropdown → `dropdowns[]` (option[1] preselected) | Stored. | Background `upsertDropdown` ported; content trigger ❌. | ❌ |
-| 29 | Walk Continue → Next → Review → Submit | Recursive `runApplyModel`. | ❌ Phase 4.7. | ❌ |
-| 30 | Uncheck "Follow company" before Submit | `uncheckFollowCompany`. | ❌ Phase 4.7. | ❌ |
-| 31 | Wait for "application sent" modal | 8 s timeout; record outcome. | ❌ Phase 4.7. | ❌ |
-| 32 | Dismiss success modal | `closeApplicationSentModal`. | ❌ Phase 4.7. | ❌ |
-| 33 | Auto-handle "Save this application?" alert | `handleSaveApplicationModal` w/ failure cap. | ❌ Phase 4.7. | ❌ |
-| 34 | 2 s save-modal poll | `startSaveModalMonitoring`. | ❌ Phase 4.7. | ❌ |
-| 35 | 10 s extension-context heartbeat | `startExtensionContextMonitoring`. | ❌ Phase 4.7. | ❌ |
-| 36 | Pagination | `goToNextPage`. | ❌ Phase 4.7. | ❌ |
-| 37 | Daily-limit detection | `checkLimitReached` + blinking border. | ❌ Phase 4.7. | ❌ |
-| 38 | Selected CV → match attachment by name | `selectCvFile`. | ❌ Phase 4.7 (`findBestMatch` ported & tested). | ❌ |
-| 39 | Smart Select CV (`findBestMatch`) | Token + Jaro + bigram weighted blend. | `findBestMatch` ported & tested with exactMatchData precedence; integration ❌. | ❌ |
+| 17 | Iterate jobs (legacy + SDUI) | Full iteration loop. | `runScript` walks `getJobItems()` for both UIs (`linkedin-dom.ts`). | ✅ |
+| 18 | Skip cards already showing "Applied" | `isItemAlreadyApplied` check. | Same — `isItemAlreadyApplied` in `linkedin-dom.ts`, called per item. | ✅ |
+| 19 | Title Must Skip filter | First filter applied per card. | `matchesFilter` from `lib/text-filters.ts` driven by `runScript`. | ✅ |
+| 20 | Title Must Contain filter | Second filter applied per card. | Same helper, second priority in `runScript`. | ✅ |
+| 21 | Wait for details ≤12 s | `waitForJobDetailsLoaded`. | `waitForJobDetailsLoaded(12_000, expectedJobId)` in `linkedin-dom.ts`. | ✅ |
+| 22 | Bad-word filter on description | `\b<word>\b` regex. | Same regex check inside `clickJob` (`run-script.ts`). | ✅ |
+| 23 | External apply path | Save to `externalApplyData`. | Content sends `externalApplyAction`; background dedupes via `dedupeExternalApply`. | ✅ |
+| 24 | No apply control → record `noEasyApply` | History entry. | `recordApplyHistoryEntry({ reason: 'noEasyApply' })` from `runFindEasyApply`. | ✅ |
+| 25 | Easy Apply form walk | Full form-fill engine. | `runValidations` orchestrates input/checkbox/radio/dropdown/city checks (`form-fillers.ts`). | ✅ |
+| 26 | Unknown text placeholder → `inputFieldConfigs[++count]` | Sent via `updateInputFieldConfigsInStorage`. | `performInputFieldChecks` sends `updateInputFieldConfigsInStorage`; background bumps count. | ✅ |
+| 27 | Unknown radio question → `radioButtons[]` (first option preselected) | Stored. | `performRadioButtonChecks` writes a new entry with `defaultValue = firstRadio.value`. | ✅ |
+| 28 | Unknown dropdown → `dropdowns[]` (option[1] preselected) | Stored. | `performDropdownChecks` selects index 1 and writes the entry. | ✅ |
+| 29 | Walk Continue → Next → Review → Submit | Recursive `runApplyModel`. | `runApplyModelLogic` recursion in `run-script.ts`, wrapped in 60 s timeout. | ✅ |
+| 30 | Uncheck "Follow company" before Submit | `uncheckFollowCompany`. | Same — `uncheckFollowCompany` in `form-fillers.ts`, hits both legacy and SDUI shadow root. | ✅ |
+| 31 | Wait for "application sent" modal | 8 s timeout; record outcome. | `waitForApplicationSentModal(8000)` drives `applyOutcome.sentModalDetected`. | ✅ |
+| 32 | Dismiss success modal | `closeApplicationSentModal`. | Same — `closeApplicationSentModal(state)` in `modals.ts`. | ✅ |
+| 33 | Auto-handle "Save this application?" alert | `handleSaveApplicationModal` w/ failure cap. | Same logic in `save-modal.ts`; failure cap stops script after 5 attempts or 30 s. | ✅ |
+| 34 | 2 s save-modal poll | `startSaveModalMonitoring`. | Same interval, started by `state.startExtensionContextMonitoring`. | ✅ |
+| 35 | 10 s extension-context heartbeat | `startExtensionContextMonitoring`. | Same interval; 3 consecutive losses → `stopScript`. | ✅ |
+| 36 | Pagination | `goToNextPage`. | `goToNextPage(state)` in `run-script.ts` reads `getPaginationInfo()` for both UIs. | ✅ |
+| 37 | Daily-limit detection | `checkLimitReached` + blinking border. | Same — `checkLimitReached` in `run-script.ts`; `toggleBlinkingBorder` flashes red. | ✅ |
+| 38 | Selected CV → match attachment by name | `selectCvFile`. | `selectCvFile` in `form-fillers.ts` with name-substring fallback. | ✅ |
+| 39 | Smart Select CV (`findBestMatch`) | Token + Jaro + bigram weighted blend. | `selectCvFile` calls `findBestMatch` with `exactMatchData` from `selectedCvFileFilters` when filters exist. | ✅ |
 | 40 | Filter Settings — bad-words section | Toggle + add/edit/delete. | `WordListEditor` reused; storage round-trip via `useStorage`. | 🔍 |
 | 41 | Filter Settings — Title Must Contain | Same shape. | Same component. | 🔍 |
 | 42 | Filter Settings — Title Must Skip | Same shape. | Same component. | 🔍 |
@@ -85,8 +84,7 @@ Generated from `MIGRATION_AUDIT.md` § 8 (70 user-visible features).
 
 1. Walk every row in Chrome side-by-side with the old extension loaded.
 2. Switch a 🔍 to ✅ once you've manually confirmed.
-3. ❌ rows depend on Phase 4.7 — see [`PHASE_4_7_PLAN.md`](../PHASE_4_7_PLAN.md).
-4. ⚠️ rows are intentional divergences — confirm they're acceptable, then leave the annotation.
+3. ⚠️ rows are intentional divergences — confirm they're acceptable, then leave the annotation.
 
 ## Storage seed
 

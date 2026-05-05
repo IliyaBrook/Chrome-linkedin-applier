@@ -8,22 +8,6 @@ Always work the **first uncompleted sub-task** in the **earliest remaining phase
 
 ---
 
-## Phase 4.7 — Manual verification on LinkedIn (remaining)
-
-**Code port landed**: every module from sections B, C, D of [`PHASE_4_7_PLAN.md`](PHASE_4_7_PLAN.md) is ported into `entrypoints/linkedin.content/{dom-utils,loaders,modals,linkedin-dom,save-modal,run-state,form-fillers,run-script}.ts`. `index.tsx` now binds `window.runScript` to the real `runScript(state)` flow. Type-check, ESLint, vitest suite (146 tests), and `pnpm build` all green.
-
-**Verification still pending** (requires real LinkedIn access — not unit-testable):
-
-- Load both old (v2.2) and new (`.output/chrome-mv3`) builds in the same Chrome profile.
-- On `/jobs/search/?keywords=...`: click ▶ in the popup, confirm `runScript` iterates cards, applies title/skip/bad-word filters, opens Easy-Apply modals, fills inputs/radios/dropdowns/checkboxes via stored configs, picks the right CV (smart-select on/off), submits, watches for the "Your application was sent" modal, advances to the next page.
-- Same flow on `/jobs/search-results/` (new SDUI shadow-DOM UI).
-- Edge cases: empty filter lists, daily limit reached (red border blink), external-apply jobs (saved into External Apply list), already-applied cards, save-application modal handling, extension context invalidation.
-- Tick the corresponding rows in [`tests/PARITY_CHECKLIST.md`](tests/PARITY_CHECKLIST.md).
-
-**Delete this Phase 4.7 block once the parity walk confirms no regressions.**
-
----
-
 ## Phase 5 — Parity tests (manual run remaining)
 
 Code deliverables landed:
@@ -32,7 +16,7 @@ Code deliverables landed:
 - [`scripts/seed-storage.ts`](scripts/seed-storage.ts) — pasteable seed for reproducible parity runs.
 
 Still TODO:
-- **Phase 5.2 manual run.** Load both extensions in one Chrome profile, walk each 🔍 row in the checklist, flip to ✅ as confirmed. ❌ rows depend on Phase 4.7 finishing first.
+- **Phase 5.2 manual run.** Walk each remaining 🔍 row in the checklist (popup wiring, settings UI, in-page modal triggers — content-script automation rows already flipped to ✅ after Phase 4.7 verification), flip to ✅ as confirmed.
 
 ---
 
@@ -68,11 +52,5 @@ Still TODO:
 - `pnpm zip` for Chrome Web Store.
 - `pnpm zip -b firefox` if the user wants Firefox parity.
 - Update `update.xml` if self-hosted updates are still in use.
-
-### 6.5 Archive old repo
-
-- Tag the old repo with the final shipped version (`git tag pre-wxt-final`).
-- README of old repo: a single line pointing to this repo.
-- Don't delete the old repo for at least a month — keep as fallback if regressions surface.
 
 **Phase 6 done when**: production zip is uploaded / installed, smoke test green, this entire `MIGRATION_PLAN.md` is empty, and the file can be deleted.
