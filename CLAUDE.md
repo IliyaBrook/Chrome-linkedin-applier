@@ -1,69 +1,76 @@
-# Easy Apply LinkedIn — WXT Migration
+# Easy Apply LinkedIn — Chrome extension
 
-This repo is the migration target for the Chrome extension **Easy Apply LinkedIn** (currently shipped as v2.2 from `D:\codding\My_projects\ChromeExtentions\autoApplylinkedin`). The plain HTML/JS/CSS extension is being rewritten on **WXT + React + TypeScript + Tailwind + shadcn/ui**.
+A Chrome MV3 extension that automates LinkedIn Easy Apply flows: iterates the jobs list, applies title / company / bad-word filters, fills the application form from saved configs, picks the right CV (with smart-select), and records every attempt to a local apply-history log.
 
-The two repos live side-by-side until full feature parity. Until then, the old repo is the authoritative spec for behavior — read it, don't modify it.
+Built on **WXT + React 18 + TypeScript (strict) + Tailwind v4 + shadcn/ui**. Typed storage via `wxt/storage`, typed messaging via `@webext-core/messaging`. Package manager: **pnpm**.
 
-## Where to look first
-
-- [`MIGRATION_PLAN.md`](MIGRATION_PLAN.md) — the active roadmap. Always start here to see the current phase and next deliverable. Completed sections are **removed** from this file (not crossed out), so the file shrinks as the migration progresses.
-- [`MIGRATION_AUDIT.md`](MIGRATION_AUDIT.md) — produced in Phase 1. Catalog of the old extension's manifest, entrypoints, Chrome APIs, storage schema, messaging contracts, assets, and feature checklist. Single source of truth for what the new version must reproduce.
-- [`.claude/rules/`](.claude/rules) — topical conventions (code style, architecture, wrappers, verification, migration discipline).
+> Topical conventions live in [`.claude/rules/`](.claude/rules) — code style, architecture, wrappers, verification.
 
 ## Critical rules
 
-1. **Do not modify the old project.** `D:\codding\My_projects\ChromeExtentions\autoApplylinkedin` is read-only until the user explicitly says cutover. No exceptions, even for "small fixes."
-2. **Old project = behavioral spec.** When a feature in the new code looks ambiguous, the answer comes from the old code, not from your imagination.
-3. **`MIGRATION_PLAN.md` is mutable.** When a phase or sub-task lands, **delete** that section from the file. Don't leave checked boxes or strikethrough — the file should always show only what's still TODO.
-4. **One phase at a time.** Don't jump ahead. Don't refactor outside the current phase's scope.
-5. **No code comments.** Identifiers, strings, and commit messages are English. (See [`.claude/rules/01-code-style.md`](.claude/rules/01-code-style.md).)
-6. **Storage and messaging only through typed wrappers** (`lib/storage.ts`, `lib/messaging.ts`). No direct `chrome.storage.*` or `chrome.runtime.sendMessage` from UI code. (See [`.claude/rules/03-wrappers.md`](.claude/rules/03-wrappers.md).)
-7. **Tailwind only.** No inline styles, no separate `.css` files for component styling. Global Tailwind layer + shadcn/ui tokens.
-8. **Manual verification after every UI change.** Load unpacked in Chrome, run through the parity checklist for the feature touched. (See [`.claude/rules/04-verification.md`](.claude/rules/04-verification.md).)
+1. **No code comments.** Identifiers and structure carry the meaning. Only justify a comment with a non-obvious *why*. (See [`.claude/rules/01-code-style.md`](.claude/rules/01-code-style.md).)
+2. **English only** for identifiers, strings, JSX text, log/error messages, and commit messages.
+3. **Storage and messaging only through typed wrappers** — `lib/storage.ts` and `lib/messaging.ts`. No direct `chrome.storage.*` or `chrome.runtime.sendMessage` from UI / hooks / content code. (See [`.claude/rules/03-wrappers.md`](.claude/rules/03-wrappers.md).)
+4. **Tailwind only** for styling. No inline `style={{ ... }}` (rare exceptions for genuinely dynamic values, with a one-line justification). No standalone `.css` files for component styling — only `assets/tailwind.css`.
+5. **Manual verification after every UI- or behavior-affecting change.** Type-checks and tests prove the code compiles; they do not prove the extension works. Load unpacked in Chrome and exercise the golden path + one edge case. (See [`.claude/rules/04-verification.md`](.claude/rules/04-verification.md).)
+6. **Strict TypeScript, no `any`** without an explicit one-line justification. Path alias `@/*` → repo root. Discriminated unions for message payloads.
 
 ## Tech stack
 
 - **WXT** — extension framework (handles MV3 manifest generation, HMR, multi-browser builds)
 - **React 18** + **TypeScript** (strict)
-- **Tailwind v4** via `@wxt-dev/module-tailwindcss`
-- **shadcn/ui** for components (copied into `components/ui/`, owned by the project)
+- **Tailwind v4** via `@tailwindcss/vite` + `@wxt-dev/module-react`
+- **shadcn/ui** primitives copied into `components/ui/` (owned by the project)
 - **`@webext-core/messaging`** for typed messaging
 - **`wxt/storage`** for typed storage with defaults and watchers
-- **pnpm** as package manager (note: old project uses yarn — new one uses pnpm because WXT recommends it and it's faster)
+- **vitest** for unit tests, **happy-dom** for component tests
+- **pnpm** as package manager
 
-## Folder layout (target — established in Phase 2)
+## Folder layout
 
 ```
 entrypoints/
-  background.ts
-  popup/
-  options/
-  content/         # if needed per audit
+  background.ts                 # service worker — onMessage handlers + storage migration shim
+  popup/                        # toolbar action
+  apply-history/, cv-manager/, external-apply/, filter-settings/,
+  form-control/, settings/      # full-page extension surfaces
+  linkedin.content/             # content-script bundle:
+    index.tsx                   # mounts ModalRoot + binds window.runScript
+    dom-utils.ts                # XPath / click / setNativeValue / autocomplete
+    loaders.ts                  # waitForLoaderToDisappear, blinking border
+    modals.ts                   # Easy-Apply / SDUI / save-application modal helpers
+    linkedin-dom.ts             # detectJobsUI, getJobItems, pagination
+    save-modal.ts               # save-application-modal handler + 2 s monitor
+    run-state.ts                # ContentRunState — single mutable state object
+    form-fillers.ts             # input/checkbox/radio/dropdown/CV-pick + validations
+    run-script.ts               # runScript / runApplyModel / runFindEasyApply / clickJob
 components/
-  ui/              # shadcn primitives
-  <feature>/       # composed feature components
-hooks/             # useStorage, useActiveTab, ...
+  ui/                           # shadcn primitives
+  popup/, page/, content-modals/, …  # composed feature components
+hooks/
+  useStorage.ts, useActiveTab.ts
 lib/
-  storage.ts       # typed wrapper, single source for keys + defaults
-  messaging.ts     # typed wrapper, single source for message contracts
-  types.ts         # shared types
-  utils.ts         # cn(), small helpers
+  storage.ts                    # typed storage items — single source for keys + defaults
+  messaging.ts                  # typed messaging — single source for ProtocolMap
+  types.ts                      # shared types (ApplyHistoryEntry, JobsUI, …)
+  fuzzy-match.ts                # findBestMatch, findClosestField, levenshtein, …
+  text-filters.ts               # matchesFilter, checkIfAlreadyApplied
+  apply-history.ts              # appendApplyHistoryEntry, recordApplyHistoryEntry
+  storage-migration.ts          # pure pruners used by background's onInstalled shim
+  xpaths.ts, constants.ts, time-format.ts, linkedin-urls.ts, utils.ts
 public/
-  icons/
+  icon/
 ```
 
-## Old project reference
+## Development
 
-- Location: `D:\codding\My_projects\ChromeExtentions\autoApplylinkedin`
-- Manifest version: 3
-- Stack: vanilla HTML/CSS/JS, jQuery-free, MV3 service worker
-- Key entry: `popup/popup/popup.html` (action popup), `background.js` (service worker), `content/{utils,createElements,content,xpaths}.js` (content scripts on `<all_urls>`)
-- Permissions: `tabs`, `storage`, `activeTab`, `scripting`, `host_permissions: <all_urls>`
+```sh
+pnpm dev          # WXT dev server with HMR — output in .output/chrome-mv3
+pnpm build        # production build
+pnpm zip          # zip for Chrome Web Store
+pnpm compile      # tsc --noEmit
+pnpm test         # vitest run
+pnpm lint         # eslint . --ext .ts,.tsx
+```
 
-## Workflow contract
-
-1. Read `MIGRATION_PLAN.md` to find the active phase.
-2. If the phase has multiple sub-tasks, work the first one. Don't batch.
-3. After each sub-task: run/verify, then delete that sub-task block from `MIGRATION_PLAN.md`.
-4. Commit after each verified sub-task. Concise commit message in English.
-5. If you discover something the audit missed, update `MIGRATION_AUDIT.md` first, then continue.
+After loading unpacked in Chrome (`chrome://extensions` → Developer mode → Load unpacked → `.output/chrome-mv3`), the toolbar icon opens the popup. The content script auto-injects on `*.linkedin.com` and binds `window.runScript` to the auto-apply orchestrator so the background's `executeScript` trigger can start a run.

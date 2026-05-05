@@ -6,9 +6,9 @@ Default to writing zero comments. Identifiers and structure must carry the meani
 
 Never write:
 - comments restating what the code does (`// fetch user`)
-- task/PR references in code (`// added for migration phase 4`)
+- task/PR references in code (`// added for issue #123`)
 - multi-line block comments or paragraph docstrings
-- `// TODO` without a tracked plan entry; if you need a TODO, put it in `MIGRATION_PLAN.md` instead
+- `// TODO` without a tracked entry — put it in an issue or a note, not in source
 
 ## English only
 

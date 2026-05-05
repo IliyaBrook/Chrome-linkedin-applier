@@ -3,8 +3,8 @@
 | Field | Old (`autoApplylinkedin/manifest.json` v2.2) | New (`pnpm build` output) | Verdict |
 |---|---|---|---|
 | `manifest_version` | `3` | `3` | match |
-| `name` | `Easy Apply LinkedIn` | `Easy Apply LinkedIn (WXT dev)` | dev-only divergence — drop the `(WXT dev)` suffix at cutover (Phase 6.1). |
-| `version` | `2.2` | `0.1.0` | new build is on its own version track until cutover; bump in Phase 6.1. |
+| `name` | `Easy Apply LinkedIn` | `Easy Apply LinkedIn (WXT dev)` | dev-only divergence — drop the `(WXT dev)` suffix at cutover. |
+| `version` | `2.2` | `0.1.0` | new build is on its own version track; bump at cutover. |
 | `description` | `Applying for Jobs Made Effortless!` | same | match |
 | `permissions` | `["tabs","storage","activeTab","scripting"]` | same | match — no new permissions requested. |
 | `host_permissions` | `["<all_urls>"]` | same | match — could narrow to `https://*.linkedin.com/*` later (the new content script only matches LinkedIn anyway), but keeping `<all_urls>` matches old behavior exactly. |
@@ -23,6 +23,6 @@
 
 - **No new permissions requested.**
 - **Tighter content-script and web-accessible-resources scope.**
-- **Cosmetic name + title differences** that get reconciled in Phase 6.1 cutover.
+- **Cosmetic name + title differences** that get reconciled at cutover.
 
 The new manifest is a strict subset of the old one in terms of capabilities and a strict superset only in icon-size slots (which are harmless).

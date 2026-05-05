@@ -1,6 +1,6 @@
-# Parity checklist — Easy Apply LinkedIn (old vs WXT rebuild)
+# Feature checklist — Easy Apply LinkedIn
 
-Generated from `MIGRATION_AUDIT.md` § 8 (70 user-visible features).
+70 user-visible features captured from the original v2.2 build, kept as a regression catalog.
 
 **Status legend**:
 - ✅ Implemented in new build, matches old behavior.
