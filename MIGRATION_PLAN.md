@@ -8,44 +8,6 @@ Always work the **first uncompleted sub-task** in the **earliest remaining phase
 
 ---
 
-## Phase 3 — Infrastructure layer
-
-**Goal**: typed wrappers and shared types in place before any UI work begins.
-
-**Sub-tasks**:
-
-### 3.1 `lib/types.ts`
-
-- Port all types implied by the storage schema and message contracts in `MIGRATION_AUDIT.md` (sections 4 and 5).
-- One file, named exports, no `any`.
-
-### 3.2 `lib/storage.ts`
-
-- For each storage key in audit section 4: one `storage.defineItem(...)` declaration with key constant, type, fallback.
-- Re-export keys as `SCREAMING_SNAKE_CASE` constants.
-- Add a `useStorage` hook in `hooks/useStorage.ts` if not provided directly by `wxt/storage`.
-
-### 3.3 `lib/messaging.ts`
-
-- `pnpm add @webext-core/messaging`
-- Build `ProtocolMap` interface from audit section 5.
-- Export `sendMessage`, `onMessage`.
-
-### 3.4 `entrypoints/background.ts`
-
-- Port background.js logic from old project to `defineBackground(() => { ... })`.
-- No top-level mutable state — all state via `lib/storage.ts` + `chrome.alarms`.
-- Wire all message handlers through `onMessage` from `lib/messaging.ts`.
-
-### 3.5 Install shadcn primitives
-
-- Run `pnpm dlx shadcn@latest add` for each component the audit's UI implies (typically: `button`, `input`, `label`, `select`, `tabs`, `dialog`, `switch`, `checkbox`, `tooltip`, `scroll-area`, `separator`, `card`).
-- Don't add primitives we don't have a use for yet — add lazily as Phase 4 needs them.
-
-**Phase 3 done when**: all sub-tasks above are deleted, extension still loads, background logs show on install, one storage round-trip works (write from popup, read in background).
-
----
-
 ## Phase 4 — Per-entrypoint UI migration
 
 **Goal**: rewrite each user-facing surface in React + Tailwind + shadcn, one at a time. After each surface lands, manually verify against the old extension and delete the sub-task.
