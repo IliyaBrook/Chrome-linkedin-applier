@@ -1,6 +1,8 @@
 import ReactDOM from 'react-dom/client';
 import { ModalRoot } from '@/components/content-modals/ModalRoot';
-import { autoApplyRunningStorage } from '@/lib/storage';
+import { ContentRunState } from './run-state';
+import { runScript } from './run-script';
+import { aaError } from './dom-utils';
 import './style.css';
 
 declare global {
@@ -14,10 +16,23 @@ export default defineContentScript({
   cssInjectionMode: 'ui',
   runAt: 'document_idle',
   async main(ctx) {
+    const state = new ContentRunState();
+
     window.runScript = () => {
-      console.log('[Easy Apply LinkedIn] runScript invoked — automation logic not yet ported.');
-      void autoApplyRunningStorage.setValue(true);
+      void runScript(state).catch((error) => {
+        aaError('runScript invocation failed', error);
+      });
     };
+
+    const onBeforeUnload = () => {
+      try {
+        if (!state.isExtensionContextValidQuiet()) return;
+        state.stopExtensionContextMonitoring();
+      } catch {
+        // ignore unload-time errors
+      }
+    };
+    window.addEventListener('beforeunload', onBeforeUnload);
 
     const ui = await createShadowRootUi(ctx, {
       name: 'easy-apply-linkedin-modals',
@@ -37,5 +52,10 @@ export default defineContentScript({
       },
     });
     ui.mount();
+
+    ctx.onInvalidated(() => {
+      window.removeEventListener('beforeunload', onBeforeUnload);
+      state.stopExtensionContextMonitoring();
+    });
   },
 });

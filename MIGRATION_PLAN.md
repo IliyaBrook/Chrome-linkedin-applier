@@ -8,23 +8,19 @@ Always work the **first uncompleted sub-task** in the **earliest remaining phase
 
 ---
 
-## Phase 4.7 — Content-script automation port (remaining)
+## Phase 4.7 — Manual verification on LinkedIn (remaining)
 
-**Pure helpers landed**: `lib/{fuzzy-match,text-filters,linkedin-urls,time-format,apply-history,xpaths,constants}.ts` are ported and unit-tested. The runtime stub in `entrypoints/linkedin.content/` mounts the modals + registers message handlers, but the actual LinkedIn DOM automation is NOT yet ported.
+**Code port landed**: every module from sections B, C, D of [`PHASE_4_7_PLAN.md`](PHASE_4_7_PLAN.md) is ported into `entrypoints/linkedin.content/{dom-utils,loaders,modals,linkedin-dom,save-modal,run-state,form-fillers,run-script}.ts`. `index.tsx` now binds `window.runScript` to the real `runScript(state)` flow. Type-check, ESLint, vitest suite (146 tests), and `pnpm build` all green.
 
-**What still needs to land** (full inventory in [`PHASE_4_7_PLAN.md`](PHASE_4_7_PLAN.md) sections B, C, D):
+**Verification still pending** (requires real LinkedIn access — not unit-testable):
 
-- `entrypoints/linkedin.content/dom-utils.ts` — `addDelay`, `getVisibleElementByXPath`, `getElementsByXPath`, `isElementVisible`, `waitForElements`, `clickElement`, `setNativeValue`, `fillAutocompleteField`, `aaLog/aaWarn/aaError`.
-- `entrypoints/linkedin.content/linkedin-dom.ts` — `detectJobsUI`, `isJobsSearchPage`, `getNewUiJobsListColumn`, `getJobItems`, `getDismissButtonForItem`, `extractJobTitleFromItem`, `getJobItemClickTarget`, `extractCompanyNameFromItem`, `isItemAlreadyApplied`, `getJobIdFromItem`, `findJobItemByJobId`, `getJobsListScrollContainer`, `getPaginationInfo`, `waitForJobItems`, `waitForJobDetailsLoaded`, `getJobTitle`.
-- `entrypoints/linkedin.content/modals.ts` — `findEasyApplyModal`, `findSduiApplyModal`, `getInteropShadowRoot`, `dismissSduiApplyModal`, `findApplicationSentModal`, `waitForApplicationSentModal`, `handleDiscardConfirmDialog`, `ensureNoApplicationModalOpen`, `closeApplicationSentModal`, `validateAndCloseConfirmationModal`, `performSafetyReminderCheck`, `clickDoneIfExist`, `terminateJobModel`.
-- `entrypoints/linkedin.content/loaders.ts` — `waitForLoaderToDisappear`, `waitForJobsLoaderToDisappear`, `waitForJobsLoaderToDisappearAndHandle`, `toggleBlinkingBorder`.
-- `entrypoints/linkedin.content/save-modal.ts` — `handleSaveApplicationModal` plus its `start/stopSaveModalMonitoring` interval pair.
-- `entrypoints/linkedin.content/form-fillers.ts` — `handleCheckboxField`, `performInputFieldChecks`, `performFillForm`, `performRadioButtonChecks`, `performDropdownChecks`, `performCheckBoxFieldCityCheck`, `performUniversalCheckboxChecks`, `runValidations`, `uncheckFollowCompany`, `selectCvFile`, `checkForFormValidationError`.
-- `entrypoints/linkedin.content/run-state.ts` — `ContentRunState` (bundle the 14 module-scope `let`s from old content.js into a closure-scoped record), `setAutoApplyRunning`, `checkAndPrepareRunState`, `updateScriptActivity`, `startScript`, `stopScript`, `startExtensionContextMonitoring`, `stopExtensionContextMonitoring`, `isExtensionContextValid(Quiet)`.
-- `entrypoints/linkedin.content/run-script.ts` — the main `runScript` / `runFindEasyApply` / `runApplyModel(Logic)` / `clickJob` / `goToNextPage` / `resetApplyOutcome` / `fillSearchFieldIfEmpty` / `checkAndPromptFields` / `checkLimitReached` flow.
-- Replace the placeholder `window.runScript = () => { ... }` in `entrypoints/linkedin.content/index.tsx` with a call into `run-script.ts`.
+- Load both old (v2.2) and new (`.output/chrome-mv3`) builds in the same Chrome profile.
+- On `/jobs/search/?keywords=...`: click ▶ in the popup, confirm `runScript` iterates cards, applies title/skip/bad-word filters, opens Easy-Apply modals, fills inputs/radios/dropdowns/checkboxes via stored configs, picks the right CV (smart-select on/off), submits, watches for the "Your application was sent" modal, advances to the next page.
+- Same flow on `/jobs/search-results/` (new SDUI shadow-DOM UI).
+- Edge cases: empty filter lists, daily limit reached (red border blink), external-apply jobs (saved into External Apply list), already-applied cards, save-application modal handling, extension context invalidation.
+- Tick the corresponding rows in [`tests/PARITY_CHECKLIST.md`](tests/PARITY_CHECKLIST.md).
 
-**Verification**: end-to-end apply flow runs on a real LinkedIn jobs page. Cannot be done without LinkedIn access — tracked here so it doesn't get lost.
+**Delete this Phase 4.7 block once the parity walk confirms no regressions.**
 
 ---
 
