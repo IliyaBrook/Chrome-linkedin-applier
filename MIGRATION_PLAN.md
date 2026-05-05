@@ -8,44 +8,6 @@ Always work the **first uncompleted sub-task** in the **earliest remaining phase
 
 ---
 
-## Phase 2 — Bootstrap the new project
-
-**Goal**: a runnable empty WXT + React + Tailwind + shadcn skeleton that loads as an unpacked extension in Chrome.
-
-**Sub-tasks (do in order, delete each from this file when verified)**:
-
-### 2.1 Init WXT project in this folder
-
-- `pnpm dlx wxt@latest init . --template react` (init in current empty folder; preserve existing `.git`, `.idea`, `.gitignore`, `CLAUDE.md`, `.claude/`, `MIGRATION_PLAN.md`, `MIGRATION_AUDIT.md`)
-- `pnpm install`
-- Verify: `pnpm dev` produces `.output/chrome-mv3` and Chrome can load it as unpacked.
-
-### 2.2 Add Tailwind v4 + shadcn
-
-- `pnpm add -D @wxt-dev/module-tailwindcss tailwindcss @tailwindcss/vite`
-- Register `@wxt-dev/module-tailwindcss` in `wxt.config.ts`
-- Create `assets/tailwind.css` with `@import "tailwindcss";`
-- `pnpm dlx shadcn@latest init` (configure for Vite + Tailwind v4 + path alias `@/*`)
-- Verify: Tailwind classes apply in popup; one shadcn `Button` renders.
-
-### 2.3 Wire path aliases and tooling
-
-- `tsconfig.json`: `strict: true`, `paths: { "@/*": ["./*"] }`
-- ESLint + Prettier config matching `.claude/rules/01-code-style.md`
-- `package.json` scripts: `dev`, `build`, `zip`, `compile` (tsc --noEmit), `lint`
-- Verify: `pnpm compile` and `pnpm lint` exit 0 on the empty skeleton.
-
-### 2.4 Configure manifest from audit
-
-- In `wxt.config.ts`: set `manifest.name` to `"Easy Apply LinkedIn (WXT dev)"`, copy `permissions` and `host_permissions` from `MIGRATION_AUDIT.md` Section 1.
-- Do **not** set `manifest.key` (different ID from old extension is required during dev).
-- Copy icon assets from old project to `public/icons/` (rename consistent with WXT convention).
-- Verify: built manifest matches expected shape; new extension shows `(WXT dev)` in `chrome://extensions`.
-
-**Phase 2 done when**: 2.1–2.4 are all deleted from this file and a placeholder popup with one shadcn button renders correctly side-by-side with the old extension.
-
----
-
 ## Phase 3 — Infrastructure layer
 
 **Goal**: typed wrappers and shared types in place before any UI work begins.
