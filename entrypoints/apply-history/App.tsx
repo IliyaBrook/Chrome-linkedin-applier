@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Download, Trash2 } from 'lucide-react';
+import { Bug, Download, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import {
@@ -19,6 +19,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { PageLayout } from '@/components/page/PageLayout';
+import { DebugHtmlDialog } from '@/components/apply-history/DebugHtmlDialog';
 import { useStorage } from '@/hooks/useStorage';
 import { applyHistoryStorage } from '@/lib/storage';
 import { REASON_LABELS, type ApplyHistoryEntry, type ApplyReason } from '@/lib/types';
@@ -62,6 +63,7 @@ export default function App() {
   const [reason, setReason] = useState<ApplyReason | 'all'>('all');
   const [search, setSearch] = useState('');
   const [confirmClear, setConfirmClear] = useState(false);
+  const [debugEntry, setDebugEntry] = useState<ApplyHistoryEntry | null>(null);
 
   const entries = history ?? [];
   const reasons = useMemo(() => uniqueReasons(entries), [entries]);
@@ -167,6 +169,7 @@ export default function App() {
                       <th className="px-3 py-2">Reason</th>
                       <th className="px-3 py-2">Description</th>
                       <th className="px-3 py-2">URL</th>
+                      <th className="px-3 py-2">Debug</th>
                       <th className="px-3 py-2" />
                     </tr>
                   </thead>
@@ -212,6 +215,21 @@ export default function App() {
                             '—'
                           )}
                         </td>
+                        <td className="px-3 py-2 text-center">
+                          {entry.debugHtml ? (
+                            <Button
+                              size="icon"
+                              variant="outline"
+                              aria-label="Open debug HTML snapshot"
+                              title="Inspect captured HTML"
+                              onClick={() => setDebugEntry(entry)}
+                            >
+                              <Bug className="h-4 w-4" />
+                            </Button>
+                          ) : (
+                            <span className="text-xs text-muted-foreground">—</span>
+                          )}
+                        </td>
                         <td className="px-3 py-2 text-right">
                           <Button
                             size="icon"
@@ -231,6 +249,8 @@ export default function App() {
           </Card>
         )}
       </section>
+
+      <DebugHtmlDialog entry={debugEntry} onClose={() => setDebugEntry(null)} />
 
       <Dialog open={confirmClear} onOpenChange={setConfirmClear}>
         <DialogContent className="max-w-sm">

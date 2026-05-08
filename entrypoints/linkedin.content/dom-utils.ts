@@ -17,6 +17,19 @@ export async function addDelay(delay = 1000): Promise<void> {
   });
 }
 
+export function captureDebugHtml(
+  element: Element | Document | null | undefined,
+): string | null {
+  if (!element) return null;
+  try {
+    if (element instanceof Element) return element.outerHTML;
+    if (element instanceof Document) return element.documentElement.outerHTML;
+  } catch {
+    return null;
+  }
+  return null;
+}
+
 export function isElementVisible(element: Element | null | undefined): boolean {
   if (!element) return false;
   if (!(element instanceof HTMLElement)) return false;

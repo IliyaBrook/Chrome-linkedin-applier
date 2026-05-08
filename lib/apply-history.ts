@@ -1,5 +1,10 @@
 import { applyHistoryStorage } from './storage';
-import { AA_HISTORY_LIMIT, type ApplyHistoryEntry, type ApplyReason } from './types';
+import {
+  AA_DEBUG_HTML_LIMIT,
+  AA_HISTORY_LIMIT,
+  type ApplyHistoryEntry,
+  type ApplyReason,
+} from './types';
 
 export function appendApplyHistoryEntry(
   prev: ApplyHistoryEntry[],
@@ -19,7 +24,14 @@ export type RecordApplyHistoryParams = {
   applied?: boolean;
   reason?: ApplyReason | null;
   description?: string | null;
+  debugHtml?: string | null;
 };
+
+function truncateDebugHtml(value: string | null | undefined): string | null {
+  if (!value) return null;
+  if (value.length <= AA_DEBUG_HTML_LIMIT) return value;
+  return value.slice(0, AA_DEBUG_HTML_LIMIT) + `\n<!-- truncated at ${AA_DEBUG_HTML_LIMIT} chars -->`;
+}
 
 export function buildHistoryEntry(
   params: RecordApplyHistoryParams,
@@ -34,6 +46,7 @@ export function buildHistoryEntry(
     applied: Boolean(params.applied),
     reason: params.applied ? 'applied' : params.reason ?? 'other',
     description: params.description ?? null,
+    debugHtml: truncateDebugHtml(params.debugHtml),
   };
 }
 

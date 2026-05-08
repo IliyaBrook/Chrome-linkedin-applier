@@ -3,6 +3,7 @@ import {
   aaLog,
   aaWarn,
   addDelay,
+  captureDebugHtml,
   clickElement,
   getElementsByXPath,
   getVisibleElementByXPath,
@@ -162,6 +163,7 @@ export async function clickJob(
         applied: false,
         reason: 'error',
         description: `clickJob exception: ${message}`,
+        debugHtml: captureDebugHtml(listItem),
       });
     } catch {
       // tracking failure must not break the flow
@@ -473,6 +475,9 @@ export async function runFindEasyApply(
               'No Apply control on the page and the card shows the "Applied" badge',
           });
         } else {
+          const detailsPanel = document.querySelector(
+            '.jobs-search__job-details, .jobs-details, [class*="jobs-details"]',
+          );
           await recordApplyHistoryEntry({
             jobId: baseJobId,
             title: jobTitle,
@@ -481,6 +486,7 @@ export async function runFindEasyApply(
             applied: false,
             reason: 'noEasyApply',
             description: 'No Easy Apply control found on this job',
+            debugHtml: captureDebugHtml(detailsPanel),
           });
         }
       }
@@ -563,6 +569,9 @@ export async function runFindEasyApply(
         reason: 'submitNotConfirmed',
         description:
           'Submit application was clicked but the "Your application was sent" success modal did not appear within 8s. Submission status is unknown.',
+        debugHtml: captureDebugHtml(
+          document.querySelector('.artdeco-modal, [role="dialog"]'),
+        ),
       });
     } else if (outcome.reachedModal && !outcome.submitClicked) {
       aaWarn(
@@ -579,6 +588,9 @@ export async function runFindEasyApply(
         reason: 'noSubmitButton',
         description:
           'The apply modal opened but the script never reached or never managed to click "Submit application" (form was likely incomplete or had a question we could not answer).',
+        debugHtml: captureDebugHtml(
+          document.querySelector('.artdeco-modal, [role="dialog"]'),
+        ),
       });
     } else {
       aaWarn('runFindEasyApply', 'Apply modal never opened after clicking Apply', {
@@ -592,6 +604,11 @@ export async function runFindEasyApply(
         applied: false,
         reason: 'noEasyApply',
         description: 'Clicked Apply control but the application modal never opened.',
+        debugHtml: captureDebugHtml(
+          document.querySelector(
+            '.jobs-search__job-details, .jobs-details, [class*="jobs-details"]',
+          ),
+        ),
       });
     }
   } catch (error: unknown) {
@@ -607,6 +624,13 @@ export async function runFindEasyApply(
         applied: false,
         reason: 'error',
         description: `runFindEasyApply exception: ${message}`,
+        debugHtml: captureDebugHtml(
+          listItem ??
+            document.querySelector('.artdeco-modal, [role="dialog"]') ??
+            document.querySelector(
+              '.jobs-search__job-details, .jobs-details, [class*="jobs-details"]',
+            ),
+        ),
       });
     } catch {
       // ignore tracking errors
@@ -806,6 +830,7 @@ export async function runScript(state: ContentRunState): Promise<void> {
           applied: false,
           reason: 'noClickTarget',
           description: `Item #${i} has no clickable element (UI: ${ui})`,
+          debugHtml: captureDebugHtml(listItem),
         });
         continue;
       }
@@ -922,6 +947,7 @@ export async function runScript(state: ContentRunState): Promise<void> {
           applied: false,
           reason: 'clickFailed',
           description: `Click on card threw: ${message}`,
+          debugHtml: captureDebugHtml(listItem),
         });
         continue;
       }
@@ -941,6 +967,7 @@ export async function runScript(state: ContentRunState): Promise<void> {
           applied: false,
           reason: 'detailsNotLoaded',
           description: `Right details panel did not render within 12s (expectedJobId: ${expectedJobId || 'unknown'})`,
+          debugHtml: captureDebugHtml(listItem),
         });
         continue;
       }

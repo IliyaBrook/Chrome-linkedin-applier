@@ -61,6 +61,7 @@ describe('buildHistoryEntry', () => {
       applied: false,
       reason: 'other',
       description: null,
+      debugHtml: null,
     });
   });
 

@@ -42,6 +42,8 @@ export const REASON_LABELS: Record<ApplyReason, string> = {
 
 export const AA_HISTORY_LIMIT = 2000;
 
+export const AA_DEBUG_HTML_LIMIT = 30_000;
+
 export const DEFAULT_FIELD_KEYS = [
   'YearsOfExperience',
   'FirstName',
@@ -124,6 +126,7 @@ export type ApplyHistoryEntry = {
   applied: boolean;
   reason: ApplyReason;
   description: string | null;
+  debugHtml?: string | null;
 };
 
 export type DropdownUpdatePayload = {
