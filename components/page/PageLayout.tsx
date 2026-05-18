@@ -7,6 +7,7 @@ export type PageLayoutProps = {
   actions?: ReactNode;
   children: ReactNode;
   className?: string;
+  wide?: boolean;
 };
 
 export function PageLayout({
@@ -15,10 +16,16 @@ export function PageLayout({
   actions,
   children,
   className,
+  wide = false,
 }: PageLayoutProps) {
   return (
     <div className="min-h-screen bg-background text-foreground">
-      <div className="mx-auto max-w-6xl px-6 py-8">
+      <div
+        className={cn(
+          'mx-auto px-6 py-8',
+          wide ? 'max-w-[1800px]' : 'max-w-6xl',
+        )}
+      >
         <header className="mb-6 flex flex-wrap items-end justify-between gap-3 border-b pb-4">
           <div className="flex flex-col gap-1">
             <h1 className="text-2xl font-semibold tracking-tight">{title}</h1>

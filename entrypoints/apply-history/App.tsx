@@ -84,6 +84,7 @@ export default function App() {
 
   return (
     <PageLayout
+      wide
       title="Apply History"
       description="Every iteration the script touched, with its outcome."
       actions={
