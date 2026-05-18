@@ -3,6 +3,7 @@ import {
   calculateSimilarity,
   findBestMatch,
   findClosestField,
+  findCvByJobTitleFilters,
   jaroWinkler,
   levenshteinDistance,
   ngramSimilarity,
@@ -209,5 +210,159 @@ describe('findBestMatch', () => {
       searchString: 'react developer',
     });
     expect(r).toBe('cv-react.pdf');
+  });
+});
+
+describe('findCvByJobTitleFilters', () => {
+  const cvNames = ['DevOps_System_IB', 'FullStack-Developer-IB', 'Frontend-Developer-IB'];
+  const filters: Record<string, string[]> = {
+    DevOps_System_IB: ['system', 'devops engineer'],
+    'FullStack-Developer-IB': ['full stack', 'fullstack', 'backend'],
+    'Frontend-Developer-IB': ['frontend', 'react', 'java'],
+  };
+
+  it('matches a single whole word inside the job title', () => {
+    expect(
+      findCvByJobTitleFilters({
+        cvNames,
+        jobTitle: 'Senior DevOps System Engineer',
+        filters,
+      }),
+    ).toBe('DevOps_System_IB');
+  });
+
+  it('matches a multi-word filter as whole phrase', () => {
+    expect(
+      findCvByJobTitleFilters({
+        cvNames,
+        jobTitle: 'DevOps Engineer (Cloud)',
+        filters,
+      }),
+    ).toBe('DevOps_System_IB');
+  });
+
+  it('does NOT match across word boundary — "java" must not hit "JavaScript"', () => {
+    expect(
+      findCvByJobTitleFilters({
+        cvNames,
+        jobTitle: 'JavaScript Developer',
+        filters,
+      }),
+    ).toBeNull();
+  });
+
+  it('does NOT match suffix — "system" must not hit "systematic"', () => {
+    expect(
+      findCvByJobTitleFilters({
+        cvNames,
+        jobTitle: 'systematic developer',
+        filters,
+      }),
+    ).toBeNull();
+  });
+
+  it('longest filter wins on multi-match (most specific)', () => {
+    expect(
+      findCvByJobTitleFilters({
+        cvNames,
+        jobTitle: 'Java Backend Developer',
+        filters,
+      }),
+    ).toBe('FullStack-Developer-IB');
+  });
+
+  it('is case-insensitive', () => {
+    expect(
+      findCvByJobTitleFilters({
+        cvNames,
+        jobTitle: 'SYSTEM architect',
+        filters,
+      }),
+    ).toBe('DevOps_System_IB');
+  });
+
+  it('returns null when no filter matches', () => {
+    expect(
+      findCvByJobTitleFilters({
+        cvNames,
+        jobTitle: 'Marketing Manager',
+        filters,
+      }),
+    ).toBeNull();
+  });
+
+  it('returns null when filters is empty', () => {
+    expect(
+      findCvByJobTitleFilters({
+        cvNames,
+        jobTitle: 'DevOps Engineer',
+        filters: {},
+      }),
+    ).toBeNull();
+  });
+
+  it('returns null when filters is nullish', () => {
+    expect(
+      findCvByJobTitleFilters({
+        cvNames,
+        jobTitle: 'DevOps Engineer',
+        filters: null,
+      }),
+    ).toBeNull();
+  });
+
+  it('returns null on empty cvNames or empty jobTitle', () => {
+    expect(findCvByJobTitleFilters({ cvNames: [], jobTitle: 'a', filters })).toBeNull();
+    expect(findCvByJobTitleFilters({ cvNames, jobTitle: '   ', filters })).toBeNull();
+  });
+
+  it('ignores CVs whose filters list is empty or non-array', () => {
+    expect(
+      findCvByJobTitleFilters({
+        cvNames: ['CV-A', 'CV-B'],
+        jobTitle: 'Backend Developer',
+        filters: { 'CV-A': [], 'CV-B': ['backend'] },
+      }),
+    ).toBe('CV-B');
+  });
+
+  it('does not match a CV whose name is not in cvNames even if filters has it', () => {
+    expect(
+      findCvByJobTitleFilters({
+        cvNames: ['CV-A'],
+        jobTitle: 'Backend Developer',
+        filters: { 'CV-B': ['backend'] },
+      }),
+    ).toBeNull();
+  });
+
+  it('handles regex-special characters in filter values without throwing', () => {
+    expect(
+      findCvByJobTitleFilters({
+        cvNames: ['CV-A'],
+        jobTitle: 'C++ Engineer',
+        filters: { 'CV-A': ['c++'] },
+      }),
+    ).toBe('CV-A');
+  });
+
+  it('matches at start of title (^ word boundary)', () => {
+    expect(
+      findCvByJobTitleFilters({
+        cvNames,
+        jobTitle: 'Frontend Engineer',
+        filters,
+      }),
+    ).toBe('Frontend-Developer-IB');
+  });
+
+  it('matches at end of title ($ word boundary)', () => {
+    expect(
+      findCvByJobTitleFilters({
+        cvNames: ['CV-A'],
+        jobTitle: 'Senior backend',
+        filters: { 'CV-A': ['backend'] },
+      }),
+    ).toBe('CV-A');
   });
 });

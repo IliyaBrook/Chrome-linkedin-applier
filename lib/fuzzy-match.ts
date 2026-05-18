@@ -322,3 +322,43 @@ export function findBestMatch({
   }
   return bestScore >= threshold ? bestMatch : null;
 }
+
+export type FindCvByJobTitleFiltersOptions = {
+  cvNames: string[];
+  jobTitle: string;
+  filters: Record<string, string[]> | null | undefined;
+};
+
+export function findCvByJobTitleFilters({
+  cvNames,
+  jobTitle,
+  filters,
+}: FindCvByJobTitleFiltersOptions): string | null {
+  if (!Array.isArray(cvNames) || cvNames.length === 0) return null;
+  if (!jobTitle || !jobTitle.trim()) return null;
+  if (!filters || typeof filters !== 'object') return null;
+
+  const jobTitleLower = jobTitle.toLowerCase();
+  let bestCvName: string | null = null;
+  let bestFilterLength = -1;
+
+  for (const cvName of cvNames) {
+    const cvFilters = filters[cvName];
+    if (!Array.isArray(cvFilters) || cvFilters.length === 0) continue;
+
+    for (const rawFilter of cvFilters) {
+      if (!rawFilter || typeof rawFilter !== 'string') continue;
+      const filter = rawFilter.toLowerCase().trim();
+      if (!filter) continue;
+
+      const escaped = filter.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      const pattern = new RegExp(`(?:^|\\W)${escaped}(?=\\W|$)`, 'i');
+      if (pattern.test(jobTitleLower) && filter.length > bestFilterLength) {
+        bestFilterLength = filter.length;
+        bestCvName = cvName;
+      }
+    }
+  }
+
+  return bestCvName;
+}
