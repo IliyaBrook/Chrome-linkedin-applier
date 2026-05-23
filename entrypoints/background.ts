@@ -1,4 +1,4 @@
-import { onMessage, sendMessage } from '@/lib/messaging';
+import {onMessage, sendMessage} from '@/lib/messaging';
 import {
   applyHistoryStorage,
   autoApplyRunningStorage,
@@ -10,17 +10,14 @@ import {
   radioButtonsStorage,
   selectedCvFileStorage,
 } from '@/lib/storage';
-import {
-  pruneInvalidApplyHistory,
-  reconcileSelectedCv,
-} from '@/lib/storage-migration';
+import {pruneInvalidApplyHistory, reconcileSelectedCv,} from '@/lib/storage-migration';
 import {
   type DropdownConfig,
   type ExternalApplyEntry,
   type InputFieldConfig,
   type RadioButtonConfig,
 } from '@/lib/types';
-import { normalizeLinkedInJobUrl } from '@/lib/linkedin-urls';
+import {normalizeLinkedInJobUrl} from '@/lib/linkedin-urls';
 
 export const FORM_CONTROL_PAGE = 'form-control.html';
 
@@ -276,8 +273,7 @@ export default defineBackground(() => {
   onMessage('stopAutoApply', async ({ data }) => {
     await autoApplyRunningStorage.setValue(false);
     try {
-      const response = await sendMessage('hideRunningModal', undefined, data.tabId);
-      return response;
+      return await sendMessage('hideRunningModal', undefined, data.tabId);
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
       return { success: false, message };
