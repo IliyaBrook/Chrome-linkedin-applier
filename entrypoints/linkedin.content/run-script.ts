@@ -46,6 +46,7 @@ import { matchesFilter } from '@/lib/text-filters';
 import { recordApplyHistoryEntry } from '@/lib/apply-history';
 import { sendMessage } from '@/lib/messaging';
 import { AA_UI_UNKNOWN } from '@/lib/constants';
+import { buildLinkedInJobUrl, getLinkedInJobIdFromUrl } from '@/lib/linkedin-urls';
 import {
   badWordsStorage,
   badWordsEnabledStorage,
@@ -399,9 +400,10 @@ export async function runFindEasyApply(
       return;
     }
 
-    const baseJobId = listItem ? getJobIdFromItem(listItem) : null;
-    const buildEntryUrl = (id: string | null) =>
-      id ? `https://www.linkedin.com/jobs/view/${id}/` : '';
+    const baseJobId = listItem
+      ? getJobIdFromItem(listItem)
+      : getLinkedInJobIdFromUrl(window.location.href);
+    const buildEntryUrl = (id: string | null) => buildLinkedInJobUrl(id);
 
     const alreadyAppliedElement = document.querySelector('.artdeco-inline-feedback__message');
     if (alreadyAppliedElement) {
@@ -428,7 +430,7 @@ export async function runFindEasyApply(
       }
     }
 
-    const currentPageLink = window.location.href;
+    const currentPageLink = buildEntryUrl(baseJobId) || window.location.href;
 
     const easyApplyButton = getVisibleElementByXPath({ xpath: EASY_APPLY_BUTTON_XPATH });
 

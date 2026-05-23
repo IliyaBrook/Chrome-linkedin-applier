@@ -4,6 +4,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { PageLayout } from '@/components/page/PageLayout';
 import { useStorage } from '@/hooks/useStorage';
 import { externalApplyDataStorage } from '@/lib/storage';
+import { normalizeLinkedInJobUrl } from '@/lib/linkedin-urls';
 import type { ExternalApplyEntry } from '@/lib/types';
 
 export function dedupeByLink(entries: ExternalApplyEntry[]): ExternalApplyEntry[] {
@@ -27,7 +28,8 @@ export default function App() {
 
   const removeAll = () => void setEntries([]);
   const removeDuplicates = () => void setEntries(dedupeByLink(list));
-  const openAll = () => list.forEach((e) => window.open(e.link, '_blank'));
+  const openAll = () =>
+    list.forEach((e) => window.open(normalizeLinkedInJobUrl(e.link), '_blank'));
   const deleteOne = (link: string) => void setEntries(list.filter((e) => e.link !== link));
 
   return (
@@ -53,37 +55,40 @@ export default function App() {
         <p className="text-sm text-muted-foreground">No saved external apply jobs yet.</p>
       ) : (
         <ul className="grid gap-3">
-          {list.map((entry) => (
-            <li key={`${entry.link}-${entry.time}`}>
-              <Card>
-                <CardContent className="flex items-start gap-3 p-4">
-                  <div className="flex flex-1 flex-col gap-1">
-                    <div className="flex items-center justify-between gap-2 text-xs text-muted-foreground">
-                      <span>{entry.companyName || 'Unknown company'}</span>
-                      <span>{formatDate(entry.time)}</span>
+          {list.map((entry) => {
+            const entryLink = normalizeLinkedInJobUrl(entry.link);
+            return (
+              <li key={`${entry.link}-${entry.time}`}>
+                <Card>
+                  <CardContent className="flex items-start gap-3 p-4">
+                    <div className="flex flex-1 flex-col gap-1">
+                      <div className="flex items-center justify-between gap-2 text-xs text-muted-foreground">
+                        <span>{entry.companyName || 'Unknown company'}</span>
+                        <span>{formatDate(entry.time)}</span>
+                      </div>
+                      <h3 className="text-sm font-semibold">{entry.title}</h3>
+                      <a
+                        href={entryLink}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="break-all text-xs text-primary underline-offset-2 hover:underline"
+                      >
+                        {entryLink}
+                      </a>
                     </div>
-                    <h3 className="text-sm font-semibold">{entry.title}</h3>
-                    <a
-                      href={entry.link}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="break-all text-xs text-primary underline-offset-2 hover:underline"
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      aria-label={`Delete ${entry.title}`}
+                      onClick={() => deleteOne(entry.link)}
                     >
-                      {entry.link}
-                    </a>
-                  </div>
-                  <Button
-                    size="icon"
-                    variant="ghost"
-                    aria-label={`Delete ${entry.title}`}
-                    onClick={() => deleteOne(entry.link)}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </CardContent>
-              </Card>
-            </li>
-          ))}
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </CardContent>
+                </Card>
+              </li>
+            );
+          })}
         </ul>
       )}
     </PageLayout>

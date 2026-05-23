@@ -1,5 +1,6 @@
-import { describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it } from 'vitest';
 import {
+  appendExternalApply,
   bumpInputFieldCount,
   dedupeExternalApply,
   removeDropdown,
@@ -15,6 +16,7 @@ import type {
   InputFieldConfig,
   RadioButtonConfig,
 } from '@/lib/types';
+import { externalApplyDataStorage } from '@/lib/storage';
 
 const externalEntry = (overrides: Partial<ExternalApplyEntry>): ExternalApplyEntry => ({
   title: 'Engineer',
@@ -50,6 +52,45 @@ describe('dedupeExternalApply', () => {
     const c = externalEntry({ time: 3, link: 'c', title: 'C' });
     const result = dedupeExternalApply([a, b, c]);
     expect(result.map((r) => r.time)).toEqual([5, 3, 1]);
+  });
+});
+
+describe('appendExternalApply', () => {
+  beforeEach(async () => {
+    await externalApplyDataStorage.setValue([]);
+  });
+
+  it('stores canonical job URLs from noisy LinkedIn search URLs', async () => {
+    await appendExternalApply({
+      jobTitle: 'Engineer',
+      currentPageLink:
+        'https://www.linkedin.com/jobs/search-results/?currentJobId=4375570269&eBP=long&start=525',
+      companyName: 'Acme',
+    });
+
+    const entries = await externalApplyDataStorage.getValue();
+    expect(entries).toHaveLength(1);
+    expect(entries[0].link).toBe('https://www.linkedin.com/jobs/view/4375570269/');
+  });
+
+  it('prefers the latest canonical entry over an older title-company duplicate', async () => {
+    await externalApplyDataStorage.setValue([
+      externalEntry({
+        link: 'https://www.linkedin.com/jobs/search-results/?currentJobId=4375570269&eBP=old',
+        time: 1,
+      }),
+    ]);
+
+    await appendExternalApply({
+      jobTitle: 'Engineer',
+      currentPageLink:
+        'https://www.linkedin.com/jobs/search-results/?currentJobId=4375570269&eBP=new',
+      companyName: 'Acme',
+    });
+
+    const entries = await externalApplyDataStorage.getValue();
+    expect(entries).toHaveLength(1);
+    expect(entries[0].link).toBe('https://www.linkedin.com/jobs/view/4375570269/');
   });
 });
 

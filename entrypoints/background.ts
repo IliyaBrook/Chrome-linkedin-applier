@@ -20,6 +20,7 @@ import {
   type InputFieldConfig,
   type RadioButtonConfig,
 } from '@/lib/types';
+import { normalizeLinkedInJobUrl } from '@/lib/linkedin-urls';
 
 export const FORM_CONTROL_PAGE = 'form-control.html';
 
@@ -45,14 +46,15 @@ export async function appendExternalApply(payload: {
   companyName: string;
 }): Promise<void> {
   const stored = await externalApplyDataStorage.getValue();
+  const jobUrl = normalizeLinkedInJobUrl(payload.currentPageLink);
   const next = dedupeExternalApply([
-    ...stored,
     {
       title: payload.jobTitle,
-      link: payload.currentPageLink,
+      link: jobUrl,
       companyName: payload.companyName,
       time: Date.now(),
     },
+    ...stored,
   ]);
   await externalApplyDataStorage.setValue(next);
 }

@@ -1,0 +1,33 @@
+{
+  "extends": "./.wxt/tsconfig.json",
+  "compilerOptions": {
+    "allowImportingTsExtensions": true,
+    "composite": true,
+    "declaration": true,
+    "emitDeclarationOnly": true,
+    "jsx": "react-jsx",
+    "noEmit": false,
+    "strict": true,
+    "noUnusedLocals": false,
+    "noUnusedParameters": false,
+    "outDir": ".wxt/test-types",
+    "types": ["@testing-library/jest-dom", "vitest/globals"]
+  },
+  "include": [
+    "components/**/*.ts",
+    "components/**/*.tsx",
+    "entrypoints/**/*.ts",
+    "entrypoints/**/*.tsx",
+    "hooks/**/*.ts",
+    "hooks/**/*.tsx",
+    "lib/**/*.ts",
+    "lib/**/*.tsx",
+    "**/*.test.ts",
+    "**/*.test.tsx",
+    "tests/**/*.ts",
+    "tests/**/*.tsx",
+    "tests/setup.ts",
+    ".wxt/wxt.d.ts"
+  ],
+  "exclude": ["node_modules", ".output", ".wxt/types"]
+}

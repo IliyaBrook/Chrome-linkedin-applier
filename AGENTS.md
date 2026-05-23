@@ -16,6 +16,12 @@ Built on **WXT + React 19 + TypeScript (strict) + Tailwind v4 + shadcn/ui**. Typ
 6. **Manual verification after every UI- or behavior-affecting change.** Type-checks and tests prove the code compiles; they do not prove the extension works. Load unpacked in Chrome and exercise the golden path + one edge case. (See [`.Codex/rules/04-verification.md`](.Codex/rules/04-verification.md).)
 7. **Strict TypeScript, no `any`** without an explicit one-line justification. Path alias `@/*` → repo root. Discriminated unions for message payloads.
 
+## Hard rule
+
+For any change touching `.ts`, `.tsx`, `tsconfig*.json`, `package.json`, or lockfiles, `compile` is mandatory.
+
+The task is not complete until this command passes:
+
 ## Tech stack
 
 - **WXT** — extension framework (handles MV3 manifest generation, HMR, multi-browser builds)
